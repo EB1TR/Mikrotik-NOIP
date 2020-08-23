@@ -1,0 +1,27 @@
+##
+##   Update Host in NOIP
+##   https://github.com/eb1tr/mikrotik
+##
+##   script by Fabian Malnero (EB1TR), fabian@eb1tr.com
+##   created: 2020-08-22
+##
+
+:local NOIPUser "YOURUSER"
+:local NOIPPass "YOURPASS"
+:local NOIPHost "YOURHOST"
+
+{
+    :local result [/tool fetch url=https://api.ipify.org as-value output=user];
+    :if ($result->"status" = "finished") do={
+        :local noipIP [:resolve $NOIPHost];
+        :local localIP ($result->"data");
+        :log info ("Local IP: $localIP");
+        :log info ("NOIP IP: $noipIP");
+        :if ($localIP != $noipIP) do={
+            /tool fetch mode=http user=$NOIPUser password=$NOIPPass url="http://dynupdate.no-ip.com/nic/update?hostname=$NOIPHost&myip=$localIP";
+            :log info ("NO-IP | IP updated from: $noipIP to: $localIP");
+        } else={
+            :log info "NO-IP | IP update not necessary";
+        }
+    }
+}
